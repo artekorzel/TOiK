@@ -7,7 +7,10 @@ iters = int(x)
 
 i = 0
 ants = {}
-for filename in os.listdir('positions'):
+filenames = os.listdir('positions')
+filenames.sort()
+
+for filename in filenames:
     if i < iters:
         with open('positions/' + filename) as f:
             content = f.read().splitlines()
