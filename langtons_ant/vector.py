@@ -16,4 +16,5 @@ class Vector:
 
 
 def random_vector(max_dimensions):
+    #return Vector(max_dimensions.x / 2, max_dimensions.y / 2)
     return Vector(random.randrange(0, max_dimensions.x), random.randrange(0, max_dimensions.y))

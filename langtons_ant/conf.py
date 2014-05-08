@@ -24,4 +24,4 @@ address_provider = SequenceAddressProvider
 
 migration = NoMigration
 locator = ParentLocator
-stats = lambda: PositionStatistics("positions/langtons_ant_positions_%05d.txt")
+stats = lambda: PositionStatistics("../positions/langtons_ant_positions_%05d.txt")
