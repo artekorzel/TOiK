@@ -44,9 +44,6 @@ class NetAgent(Addressable):
     def step(self):
         for agent in self.__agents.values():
             agent.step()
-        for matrix_line in self.agents_matrix:
-            print matrix_line
-        print ''
 
     def __move_agent(self, agent, vector):
         self.__remove_agent_from_matrix(agent)
@@ -56,7 +53,6 @@ class NetAgent(Addressable):
     def move_agent(self, agent):
         self.__move_agent(agent, SubAgent.directions[agent.direction_index])
         neighbours = self.get_neighbours(agent)
-        print 'Neighbours: ' + neighbours.__str__(), len(neighbours)
         if len(neighbours) > 0:
             agent.turn_around()
             self.__move_agent(agent, SubAgent.directions[agent.direction_index])
@@ -67,7 +63,6 @@ class NetAgent(Addressable):
         max_horizontal = (position.x + 1) % self.net_dimensions.x
         min_vertical = (position.y - 1) % self.net_dimensions.y
         max_vertical = (position.y + 1) % self.net_dimensions.y
-        print position, min_horizontal, max_horizontal, min_vertical, max_vertical
         return self.agents_matrix[min_vertical][position.x] + self.agents_matrix[max_vertical][position.x] + \
             self.agents_matrix[position.y][min_horizontal] + self.agents_matrix[position.y][max_horizontal]
 
@@ -98,5 +93,4 @@ class SubAgent(Addressable):
         self.direction_index = (self.direction_index - 1) % len(SubAgent.directions)
 
     def turn_around(self):
-        print 'turned'
         self.direction_index = (self.direction_index + 2) % len(SubAgent.directions)

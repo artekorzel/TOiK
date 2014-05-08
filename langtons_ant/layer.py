@@ -32,6 +32,10 @@ class ColorLayer(Layer):
             current_cell.color = Color.white
 
 
-class ColoredCell:
+class Cell(object):
+    pass
+
+
+class ColoredCell(Cell):
     def __init__(self):
         self.color = Color.white
