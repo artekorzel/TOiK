@@ -28,9 +28,6 @@ for filename in filenames:
 
 g = Gnuplot.Gnuplot()
 g.title('State after ' + x + ' iterations')
-d = []
-for path in ants.values():
-    d.append(Gnuplot.Data(path))
 #g('set grid')
 g.plot(*ants.values())
 raw_input('Please press return to continue...\n')
