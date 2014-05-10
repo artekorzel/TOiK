@@ -1,7 +1,7 @@
 @echo off
 if not exist positions (
 	echo Creating positions folder
-	mkdir positions
+	mkdir ..\positions
 )
 
 echo Starting computations
