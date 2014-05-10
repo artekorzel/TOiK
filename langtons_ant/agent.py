@@ -3,12 +3,13 @@ from pyage.core.address import Addressable
 from pyage.core.inject import Inject
 from langtons_ant.vector import random_vector, Vector
 
-
 class NetAgent(Addressable):
     @Inject("locator", "net_dimensions", "layers")
     @Inject("sub_agents:_NetAgent__agents")
-    def __init__(self, name=None):
+    @Inject("migration")
+    def __init__(self, position_in_net, name=None):
         super(NetAgent, self).__init__()
+        self.position_in_net = position_in_net
         self.name = name
         self.agents_matrix = [[[] for i in range(self.net_dimensions.x)] for j in range(self.net_dimensions.y)]
         for agent in self.__agents.values():
@@ -47,7 +48,17 @@ class NetAgent(Addressable):
 
     def __move_agent(self, agent, vector):
         self.__remove_agent_from_matrix(agent)
-        agent.position.move(vector, self.net_dimensions)
+        new_position_x = agent.position.x + vector.x
+        new_position_y = agent.position.y + vector.y
+        if new_position_y < self.net_dimensions.y:
+            agent.position.y = new_position_y
+        if new_position_x < 0:
+            self.migration.migrate_to_previous(agent)
+            pass
+        if new_position_x >= self.net_dimensions.x:
+            self.migration.migrate_to_next(agent)
+            pass
+        agent.position.x = new_position_x
         self.agents_matrix[agent.position.y][agent.position.x].append(agent)
 
     def move_agent(self, agent):
@@ -70,7 +81,7 @@ class NetAgent(Addressable):
 class SubAgent(Addressable):
     directions = [Vector(-1, 0), Vector(0, -1), Vector(+1, 0), Vector(0, +1)]
 
-    @Inject("locator")
+    @Inject("locator", "migration")
     def __init__(self, name=None):
         super(SubAgent, self).__init__()
         self.name = name
