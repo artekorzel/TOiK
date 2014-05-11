@@ -15,11 +15,11 @@ from langtons_ant.net_agents_creation import net_agent
 
 logger = logging.getLogger(__name__)
 
-net_dimensions = lambda: Vector(30, 30)
+net_dimensions = lambda: Vector(50, 50)
 
 ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
-agents = net_agent(NetAgent, ns_hostname)
+agents = net_agent(NetAgent, 2, ns_hostname)
 layers = lambda: [ColorLayer()]
 sub_agents = unnamed_agents(3, SubAgent)
 
