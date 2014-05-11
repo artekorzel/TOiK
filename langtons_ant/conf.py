@@ -1,6 +1,7 @@
 # coding=utf-8
 import os
 import logging
+import Pyro4
 from pyage.core.address import SequenceAddressProvider
 from pyage.core.agent.agent import unnamed_agents
 from pyage.core.locator import ParentLocator
@@ -14,18 +15,21 @@ from langtons_ant.net_agents_creation import net_agent
 
 logger = logging.getLogger(__name__)
 
-ns_hostname = lambda: os.environ['NS_HOSTNAME']
-
 net_dimensions = lambda: Vector(30, 30)
+
+ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
 agents = net_agent(NetAgent, ns_hostname)
 layers = lambda: [ColorLayer()]
-sub_agents = unnamed_agents(1, SubAgent)
+sub_agents = unnamed_agents(3, SubAgent)
 
 stop_condition = lambda: StepLimitStopCondition(1000)
 
 address_provider = SequenceAddressProvider
-
 migration = CrossBorderMigration
+
 locator = ParentLocator
+pyro_daemon = Pyro4.Daemon()
+daemon = lambda : pyro_daemon
+
 stats = lambda: PositionStatistics("../positions/langtons_ant_positions_%05d.txt")

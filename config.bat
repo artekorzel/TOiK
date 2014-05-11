@@ -1,0 +1,4 @@
+@echo off
+
+set NS_HOSTNAME=192.168.0.17
+set PYRO_HOST=192.168.0.17

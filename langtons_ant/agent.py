@@ -21,8 +21,18 @@ class NetAgent(Addressable):
         self.agents_matrix[position.y][position.x].append(agent)
         agent.position = position
 
+    def __add_existing_agent(self, agent, posx, posy):
+        agent.parent = self
+        position = Vector(posx, posy)
+        self.agents_matrix[position.y][position.x].append(agent)
+        agent.position = position
+
     def add_agent(self, agent):
         self.__add_agent(agent)
+        self.__agents[agent.get_address()] = agent
+
+    def add_existing_agent(self, agent, posx, posy):
+        self.__add_existing_agent(agent, posx, posy)
         self.__agents[agent.get_address()] = agent
 
     def __remove_agent_from_matrix(self, agent):
@@ -34,10 +44,7 @@ class NetAgent(Addressable):
     def remove_agent(self, agent):
         agent = self.__agents[agent.get_address()]
         self.__remove_agent_from_matrix(agent)
-        self.__agents.remove(agent)
-        agent.position = None
-        agent.parent = None
-        return agent
+        return self.__agents.pop(agent.get_address())
 
     def get_agents(self):
         return self.__agents.values()
@@ -50,16 +57,21 @@ class NetAgent(Addressable):
         self.__remove_agent_from_matrix(agent)
         new_position_x = agent.position.x + vector.x
         new_position_y = agent.position.y + vector.y
-        if new_position_y < self.net_dimensions.y:
+
+        if self.net_dimensions.y > new_position_y >= 0:
             agent.position.y = new_position_y
+
         if new_position_x < 0:
-            self.migration.migrate_to_previous(agent)
-            pass
-        if new_position_x >= self.net_dimensions.x:
-            self.migration.migrate_to_next(agent)
-            pass
-        agent.position.x = new_position_x
-        self.agents_matrix[agent.position.y][agent.position.x].append(agent)
+            self.migration.migrate_to_previous(agent, agent.position.y)
+            #pass
+
+        elif new_position_x >= self.net_dimensions.x:
+            self.migration.migrate_to_next(agent, agent.position.y)
+            #pass
+
+        else:
+            agent.position.x = new_position_x
+            self.agents_matrix[agent.position.y][agent.position.x].append(agent)
 
     def move_agent(self, agent):
         self.__move_agent(agent, SubAgent.directions[agent.direction_index])
@@ -76,6 +88,9 @@ class NetAgent(Addressable):
         max_vertical = (position.y + 1) % self.net_dimensions.y
         return self.agents_matrix[min_vertical][position.x] + self.agents_matrix[max_vertical][position.x] + \
             self.agents_matrix[position.y][min_horizontal] + self.agents_matrix[position.y][max_horizontal]
+
+    def get_position_in_net(self):
+        return self.position_in_net
 
 
 class SubAgent(Addressable):
