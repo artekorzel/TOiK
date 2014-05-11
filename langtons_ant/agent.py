@@ -58,7 +58,11 @@ class NetAgent(Addressable):
         new_position_x = agent.position.x + vector.x
         new_position_y = agent.position.y + vector.y
 
-        if self.net_dimensions.y > new_position_y >= 0:
+        if new_position_y >= self.net_dimensions.y:
+            agent.position.y = 0
+        elif new_position_y < 0:
+            agent.position.y = self.net_dimensions.y - 1
+        else:
             agent.position.y = new_position_y
 
         if new_position_x < 0:
