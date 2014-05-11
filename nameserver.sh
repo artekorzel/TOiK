@@ -1,3 +1,5 @@
 #!/bin/bash
 
-python -Wignore -m Pyro4.naming -n 192.168.0.17
+source config.sh
+
+python -Wignore -m Pyro4.naming -n $NS_HOSTNAME
