@@ -1,17 +1,19 @@
 import pyglet
-import os
-
-x = 60
-y = 50
+from pyage.core.inject import Inject
 
 i = 1
 ants = {}
 first = True
 
+with open('../positions/config.txt') as f:
+    content = f.read()
+    args = content.split(' ')
+    x = int(args[0])
+    y = int(args[1])
 
 def next_step(dt):
     global i
-    with open('..\\..\\positions\\langtons_ant_positions_' + str(i).zfill(5)+'.txt') as f:
+    with open('../positions/langtons_ant_positions_' + str(i).zfill(5)+'.txt') as f:
         content = f.read().splitlines()
         for line in content:
             args = line.split(' ')
@@ -30,15 +32,14 @@ def next_step(dt):
 
 window = pyglet.window.Window(resizable=True)
 window.set_size(x*13+x-1, y*13+y-1)
-ant_imageN = pyglet.image.load('..\\antN.png')
-ant_imageS = pyglet.image.load('..\\antS.png')
-ant_imageW = pyglet.image.load('..\\antW.png')
-ant_imageE = pyglet.image.load('..\\antE.png')
+ant_imageN = pyglet.image.load('antN.png')
+ant_imageS = pyglet.image.load('antS.png')
+ant_imageW = pyglet.image.load('antW.png')
+ant_imageE = pyglet.image.load('antE.png')
 
 
 @window.event
 def on_draw():
-    # window.clear()
 
     if(first==True):
         pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
