@@ -11,7 +11,7 @@ filenames = os.listdir('../positions')
 filenames.sort()
 
 for filename in filenames:
-    if i < iters:
+    if filename.startswith('langtons_ant_positions') and i < iters:
         with open('../positions/' + filename) as f:
             content = f.read().splitlines()
             for line in content:

@@ -1,6 +1,7 @@
 # coding=utf-8
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
+from langtons_ant.border import Border, BorderType
 from langtons_ant.vector import random_vector, Vector
 
 class NetAgent(Addressable):
@@ -12,8 +13,10 @@ class NetAgent(Addressable):
         self.position_in_net = position_in_net
         self.name = name
         self.agents_matrix = [[[] for i in range(self.net_dimensions.x)] for j in range(self.net_dimensions.y)]
+        self.border = Border(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
+        self.iter = 1
 
     def __add_agent(self, agent):
         agent.parent = self
@@ -50,6 +53,7 @@ class NetAgent(Addressable):
         return self.__agents.values()
 
     def step(self):
+        self.migration.update_border(self)
         for agent in self.__agents.values():
             agent.step()
 
@@ -78,24 +82,93 @@ class NetAgent(Addressable):
             self.agents_matrix[agent.position.y][agent.position.x].append(agent)
 
     def move_agent(self, agent):
-        self.__move_agent(agent, SubAgent.directions[agent.direction_index])
-        neighbours = self.get_neighbours(agent)
-        if len(neighbours) > 0:
+        v = SubAgent.directions[agent.direction_index]
+        x = agent.position.x + v.x
+        y = agent.position.y + v.y
+        neighbours = self.get_neighbours(x, y, agent.position.x, agent.position.y)
+        if neighbours > 0:
             agent.turn_around()
+        else:
             self.__move_agent(agent, SubAgent.directions[agent.direction_index])
 
-    def get_neighbours(self, agent):
-        position = agent.position
-        min_horizontal = (position.x - 1) % self.net_dimensions.x
-        max_horizontal = (position.x + 1) % self.net_dimensions.x
-        min_vertical = (position.y - 1) % self.net_dimensions.y
-        max_vertical = (position.y + 1) % self.net_dimensions.y
-        return self.agents_matrix[min_vertical][position.x] + self.agents_matrix[max_vertical][position.x] + \
-            self.agents_matrix[position.y][min_horizontal] + self.agents_matrix[position.y][max_horizontal]
+    def get_neighbours(self, x, y, old_x, old_y):
+        cnt = 0
+        if x < 1 or y < 0 or y == self.net_dimensions.y:
+            if self.border.containsAgent(BorderType.W, x - 1, y):
+                cnt += 1
+        else:
+            if x != old_x + 1:
+                cnt += len(self.agents_matrix[y][x - 1])
+
+        if x + 1 >= self.net_dimensions.x or y < 0 or y == self.net_dimensions.y:
+            if self.border.containsAgent(BorderType.E, x + 1, y):
+                cnt += 1
+        else:
+            if x + 1 != old_x:
+                cnt += len(self.agents_matrix[y][x + 1])
+
+        if y < 1 or x < 0 or x == self.net_dimensions.x:
+            if self.border.containsAgent(BorderType.S, x, y - 1):
+                cnt += 1
+        else:
+            if y - 1 != old_y:
+                cnt += len(self.agents_matrix[y - 1][x])
+
+        if y + 1 >= self.net_dimensions.y or x < 0 or x == self.net_dimensions.x:
+            if self.border.containsAgent(BorderType.N, x, y + 1):
+                cnt += 1
+        else:
+            if y + 1 != old_y:
+                cnt += len(self.agents_matrix[y + 1][x])
+
+        return cnt
 
     def get_position_in_net(self):
         return self.position_in_net
 
+    def get_border(self):
+        return self.border
+
+    def __append_to_ret(self, ret, tab, tab_i, ret_i):
+        for agent in tab[tab_i]:
+            if not not agent:
+                ret[ret_i].append(agent[0].position.x)
+
+    def get_border_n(self):
+        ret = [[] for _ in range(2)]
+        self.__append_to_ret(ret, self.agents_matrix, 0, 0)
+        self.__append_to_ret(ret, self.agents_matrix, 1, 1)
+        return ret
+
+    def get_border_s(self):
+        ret = [[] for _ in range(2)]
+        self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 1, 0)
+        self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 2, 1)
+        return ret
+
+    def get_border_w(self):
+        border = [[] for _ in range(2)]
+        ret = [[] for _ in range(2)]
+        for i in range(len(self.agents_matrix)):
+            border[0].append(self.agents_matrix[i][self.net_dimensions.x - 1])
+            border[1].append(self.agents_matrix[i][self.net_dimensions.x - 2])
+        self.__append_to_ret(ret, border, 0, 0)
+        self.__append_to_ret(ret, border, 1, 1)
+        return ret
+
+    def get_border_e(self):
+        border = [[] for _ in range(2)]
+        ret = [[] for _ in range(2)]
+        for i in range(len(self.agents_matrix)):
+            border[0].append(self.agents_matrix[i][0])
+            border[1].append(self.agents_matrix[i][1])
+        self.__append_to_ret(ret, border, 0, 0)
+        self.__append_to_ret(ret, border, 1, 1)
+        return ret
+
+    def __print_matrix(self):
+        for agents in self.agents_matrix:
+            print agents
 
 class SubAgent(Addressable):
     directions = [Vector(-1, 0), Vector(0, -1), Vector(+1, 0), Vector(0, +1)]

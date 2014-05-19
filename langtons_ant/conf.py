@@ -15,15 +15,15 @@ from langtons_ant.net_agents_creation import net_agent
 
 logger = logging.getLogger(__name__)
 
-net_dimensions = lambda: Vector(30, 50)
+net_dimensions = lambda: Vector(25, 25)
 
 ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
 agents = net_agent(NetAgent, 2, ns_hostname)
 layers = lambda: [ColorLayer()]
-sub_agents = unnamed_agents(2, SubAgent)
+sub_agents = unnamed_agents(5, SubAgent)
 
-stop_condition = lambda: StepLimitStopCondition(1000)
+stop_condition = lambda: StepLimitStopCondition(500)
 
 address_provider = SequenceAddressProvider
 migration = CrossBorderMigration
