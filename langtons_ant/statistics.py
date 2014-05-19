@@ -10,7 +10,7 @@ class PositionStatistics(Statistics):
     def update(self, step_count, net_agents):
         if(self.config == True):
             with open("../positions/config.txt", "w") as out:
-                out.write("%d %d\n" % (net_agents[0].net_dimensions.x * len(net_agents), net_agents[0].net_dimensions.y))
+                out.write("%d %d %d\n" % (net_agents[0].net_dimensions.x, net_agents[0].net_dimensions.y, len(net_agents)))
             self.config = False;
 
         with open(self.output_file_name % step_count, "w") as out:
