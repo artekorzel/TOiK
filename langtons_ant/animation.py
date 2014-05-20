@@ -5,7 +5,7 @@ i = 1
 ants = {}
 first = True
 
-with open('../positions/config.txt') as f:
+with open('../config.txt') as f:
     content = f.read()
     args = content.split(' ')
     x = int(args[0])
