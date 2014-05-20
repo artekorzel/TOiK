@@ -8,6 +8,7 @@ class NetAgent(Addressable):
     @Inject("locator", "net_dimensions", "layers")
     @Inject("sub_agents:_NetAgent__agents")
     @Inject("migration")
+    @Inject("iterations_per_update")
     def __init__(self, position_in_net, name=None):
         super(NetAgent, self).__init__()
         self.position_in_net = position_in_net
@@ -16,7 +17,7 @@ class NetAgent(Addressable):
         self.border = Border(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
-        self.iter = 1
+        self.iter = 0
 
     def __add_agent(self, agent):
         agent.parent = self
@@ -53,7 +54,11 @@ class NetAgent(Addressable):
         return self.__agents.values()
 
     def step(self):
-        self.migration.update_border(self)
+        if self.iter % self.iterations_per_update == 0:
+            self.migration.update_border(self)
+            self.iter = 1;
+        else:
+            self.iter += 1
         for agent in self.__agents.values():
             agent.step()
 

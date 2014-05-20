@@ -22,6 +22,7 @@ ns_hostname = lambda: os.environ['NS_HOSTNAME']
 agents = net_agent(NetAgent, 2, ns_hostname)
 layers = lambda: [ColorLayer()]
 sub_agents = unnamed_agents(5, SubAgent)
+iterations_per_update = lambda: 10
 
 stop_condition = lambda: StepLimitStopCondition(500)
 
