@@ -19,16 +19,16 @@ net_dimensions = lambda: Vector(20, 20)
 
 ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
-net_agents_per_line = lambda: 2
-net_agents_count = lambda: 7
-agents_per_net = lambda: 2
+net_agents_per_line = lambda: 1
+net_agents_count = lambda: 1
+agents_per_net = 1
 agents = net_agent(NetAgent, net_agents_count, net_agents_per_line, ns_hostname)
 layers = lambda: [ColorLayer()]
 sub_agents = unnamed_agents(agents_per_net, SubAgent)
 iterations_per_update = lambda: 100
 
 
-stop_condition = lambda: StepLimitStopCondition(500)
+stop_condition = lambda: StepLimitStopCondition(10000)
 
 address_provider = SequenceAddressProvider
 migration = CrossBorderMigration
