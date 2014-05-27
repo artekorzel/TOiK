@@ -8,17 +8,20 @@ class PositionStatistics(Statistics):
         self.config = True
 
     def update(self, step_count, net_agents):
-        if(self.config == True):
+        if self.config == True:
             with open("../config.txt", "w") as out:
-                out.write("%d %d %d\n" % (net_agents[0].net_dimensions.x, net_agents[0].net_dimensions.y, len(net_agents)))
+                out.write(
+                    "%d %d %d\n" % (net_agents[0].net_dimensions.x, net_agents[0].net_dimensions.y, len(net_agents)))
             self.config = False;
 
         with open(self.output_file_name % step_count, "w") as out:
             for net_agent in net_agents:
-                net_agent_position_x = net_agent.get_position_in_net() * net_agent.net_dimensions.x
+                net_agent_position_x = net_agent.get_position_in_net_x() * net_agent.net_dimensions.x
+                net_agent_position_y = net_agent.get_position_in_net_y() * net_agent.net_dimensions.y
                 for agent in net_agent.get_agents():
                     out.write("%s: %d %d %d %d\n" %
-                              (agent.get_address(), agent.position.x + net_agent_position_x, agent.position.y,
+                              (agent.get_address(), agent.position.x + net_agent_position_x,
+                               agent.position.y + net_agent_position_y,
                                net_agent.layers[0].get_current_cell(agent).color, agent.direction_index))
 
     def summarize(self, agents):

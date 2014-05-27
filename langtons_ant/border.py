@@ -57,7 +57,7 @@ class Border:
             self.addAgentsToBorder(self.E, agents[1], 1)
 
     def printBordes(self):
-        print "N:" + str(self.N)
-        print "S:" + str(self.S)
-        print "E:" + str(self.E)
-        print "W:" + str(self.W)
+        print "N:" + str(self.N[0]) + "\t" + str(self.N[1])
+        print "S:" + str(self.S[0]) + "\t" + str(self.S[1])
+        print "E:" + str(self.E[0]) + "\t" + str(self.E[1])
+        print "W:" + str(self.W[0]) + "\t" + str(self.W[1])

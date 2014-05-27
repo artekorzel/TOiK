@@ -9,9 +9,10 @@ class NetAgent(Addressable):
     @Inject("sub_agents:_NetAgent__agents")
     @Inject("migration")
     @Inject("iterations_per_update")
-    def __init__(self, position_in_net, name=None):
+    def __init__(self, position_in_net_x, position_in_net_y, name=None):
         super(NetAgent, self).__init__()
-        self.position_in_net = position_in_net
+        self.position_in_net_x = position_in_net_x
+        self.position_in_net_y = position_in_net_y
         self.name = name
         self.agents_matrix = [[[] for i in range(self.net_dimensions.x)] for j in range(self.net_dimensions.y)]
         self.border = Border(self.net_dimensions.x, self.net_dimensions.y)
@@ -75,11 +76,11 @@ class NetAgent(Addressable):
             agent.position.y = new_position_y
 
         if new_position_x < 0:
-            self.migration.migrate_to_previous(agent, agent.position.y)
+            self.migration.migrate_west(agent, agent.position.y)
             #pass
 
         elif new_position_x >= self.net_dimensions.x:
-            self.migration.migrate_to_next(agent, agent.position.y)
+            self.migration.migrate_east(agent, agent.position.y)
             #pass
 
         else:
@@ -128,8 +129,11 @@ class NetAgent(Addressable):
 
         return cnt
 
-    def get_position_in_net(self):
-        return self.position_in_net
+    def get_position_in_net_x(self):
+        return self.position_in_net_x
+
+    def get_position_in_net_y(self):
+        return self.position_in_net_y
 
     def get_border(self):
         return self.border
