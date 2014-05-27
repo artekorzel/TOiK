@@ -33,7 +33,7 @@ class CrossBorderMigration(Migration):
             else:
                 previous_parent_in_net = self.net_agents_per_line - 1
 
-        return self.__get_agent(list_of_agents, previous_parent_in_net)
+        return self.__get_agent(list_of_agents, previous_parent_in_net, netAgent.position_in_net_y)
 
     def get_east_neighbour(self, netAgent):
         ns = Pyro4.locateNS(self.ns_hostname)
@@ -45,7 +45,7 @@ class CrossBorderMigration(Migration):
         if agent_nr == number_of_agents or next_parent_in_net == self.net_agents_per_line:
             next_parent_in_net = 0
 
-        return self.__get_agent(list_of_agents, next_parent_in_net)
+        return self.__get_agent(list_of_agents, next_parent_in_net, netAgent.position_in_net_y)
 
     def migrate_west(self, subAgent, posy):
         previous_parent = self.get_west_neighbour(subAgent.parent)
@@ -58,10 +58,10 @@ class CrossBorderMigration(Migration):
         subAgent.position.y = 0
         next_parent.add_existing_agent(current_parent.remove_agent(subAgent), 0, posy)
 
-    def __get_agent(self, agents, agent_nr):
+    def __get_agent(self, agents, agent_nr_x, agent_nr_y):
         for agent in agents:
             currAgent = Pyro4.Proxy(agents[agent])
-            if currAgent.get_position_in_net_x() == agent_nr:
+            if currAgent.get_position_in_net_x() == agent_nr_x and currAgent.get_position_in_net_y() == agent_nr_y:
                 return currAgent
         return None
 

@@ -20,7 +20,8 @@ net_dimensions = lambda: Vector(20, 40)
 ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
 net_agents_per_line = lambda: 2
-agents = net_agent(NetAgent, 4, net_agents_per_line, ns_hostname)
+net_agents_count = lambda: 5
+agents = net_agent(NetAgent, net_agents_count, net_agents_per_line, ns_hostname)
 layers = lambda: [ColorLayer()]
 sub_agents = unnamed_agents(2, SubAgent)
 iterations_per_update = lambda: 10

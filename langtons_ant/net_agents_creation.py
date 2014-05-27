@@ -2,7 +2,7 @@ import Pyro4
 from pyage.core.agent.agent import AGENT
 
 
-def net_agent(type, count, net_agents_per_line, ns_hostname):
+def net_agent(type, net_agents_count, net_agents_per_line, ns_hostname):
     def factory():
         ns = Pyro4.locateNS(ns_hostname())
         total_agents = len(ns.list(AGENT))
@@ -10,7 +10,7 @@ def net_agent(type, count, net_agents_per_line, ns_hostname):
         lines_of_agents = total_agents / net_agents_per_line() - 1
 
         agents = {}
-        for i in range(count):
+        for i in range(net_agents_count()):
             if agents_in_line % net_agents_per_line() == 0:
                 agents_in_line = 0
                 lines_of_agents += 1
