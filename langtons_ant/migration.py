@@ -4,7 +4,7 @@ from pyage.core.agent.agent import AGENT
 from pyage.core.inject import Inject
 from pyage.core.migration import Migration
 from langtons_ant import agent
-from langtons_ant.border import BorderType
+from langtons_ant.overlap import Direction
 
 logger = logging.getLogger(__name__)
 
@@ -14,24 +14,53 @@ class CrossBorderMigration(Migration):
     def __init__(self):
         super(CrossBorderMigration, self).__init__()
 
-    def get_north_neighbour(self, netAgent):
+    def migrate_direction(self, subAgent, posx, posy, direction):
+        current_parent = subAgent.parent
+        next_parent = self.get_neighbour(current_parent, direction)
+        subAgent.position.x = posx
+        subAgent.position.y = posy
+        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), posx, posy)
+
+    def get_neighbour(self, netAgent, direction):
         ns = Pyro4.locateNS(self.ns_hostname)
         list_of_agents = ns.list(AGENT)
         number_of_agents = len(list_of_agents)
         agent_nr = netAgent.position_in_net_y * self.net_agents_per_line + netAgent.position_in_net_x + 1
 
-        next_parent = netAgent.position_in_net_y + 1
-        if number_of_agents - agent_nr < self.net_agents_per_line:
-            next_parent = 0
+        if direction == Direction.N:
+            next_parent_x = netAgent.position_in_net_x
+            next_parent_y = self.__next_north_neighbour(netAgent, number_of_agents, agent_nr)
+        elif direction == Direction.S:
+            next_parent_x = netAgent.position_in_net_x
+            next_parent_y = self.__next_south_neighbour(netAgent, number_of_agents)
+        elif direction == Direction.W:
+            next_parent_x = self.__next_west_neighbour(netAgent, number_of_agents, agent_nr)
+            next_parent_y = netAgent.position_in_net_y
+        else:
+            next_parent_x = self.__next_east_neighbour(netAgent, number_of_agents, agent_nr)
+            next_parent_y = netAgent.position_in_net_y
 
-        return self.__get_agent(list_of_agents, netAgent.position_in_net_x, next_parent)
+        return self.__get_agent(list_of_agents, next_parent_x, next_parent_y)
 
+    def update_bookmarks(self, netAgent):
+        overlaps = netAgent.get_overlaps()
+        overlaps.clear()
+        neighbour = self.get_neighbour(netAgent, Direction.N)
+        overlaps.add_agents(Direction.N, neighbour.get_overlap(Direction.S))
+        neighbour = self.get_neighbour(netAgent, Direction.S)
+        overlaps.add_agents(Direction.S, neighbour.get_overlap(Direction.N))
+        neighbour = self.get_neighbour(netAgent, Direction.E)
+        overlaps.add_agents(Direction.E, neighbour.get_overlap(Direction.W))
+        neighbour = self.get_neighbour(netAgent, Direction.W)
+        overlaps.add_agents(Direction.W, neighbour.get_overlap(Direction.E))
 
-    def get_south_neighbour(self, netAgent):
-        ns = Pyro4.locateNS(self.ns_hostname)
-        list_of_agents = ns.list(AGENT)
-        number_of_agents = len(list_of_agents)
+    def __next_north_neighbour(self, netAgent, number_of_agents, current_agent_nr):
+        neighbour = netAgent.position_in_net_y + 1
+        if number_of_agents - current_agent_nr < self.net_agents_per_line:
+            neighbour = 0
+        return neighbour
 
+    def __next_south_neighbour(self, netAgent, number_of_agents):
         next_parent = netAgent.position_in_net_y - 1
         if next_parent < 0:
             last_agent_position = (number_of_agents - 1) % self.net_agents_per_line
@@ -39,58 +68,22 @@ class CrossBorderMigration(Migration):
                 next_parent = (number_of_agents - 1) / self.net_agents_per_line
             else:
                 next_parent = (number_of_agents - 1) / self.net_agents_per_line - 1
+        return next_parent
 
-        return self.__get_agent(list_of_agents, netAgent.position_in_net_x, next_parent)
-
-    def get_west_neighbour(self, netAgent):
-        ns = Pyro4.locateNS(self.ns_hostname)
-        list_of_agents = ns.list(AGENT)
-        number_of_agents = len(list_of_agents)
-        agent_nr = netAgent.position_in_net_y * self.net_agents_per_line + netAgent.position_in_net_x + 1
-
-        previous_parent_in_net = netAgent.position_in_net_x - 1
-        if previous_parent_in_net == -1:
-            if ((agent_nr - 1) / self.net_agents_per_line) == ((number_of_agents - 1) / self.net_agents_per_line):
-                previous_parent_in_net = (number_of_agents - 1) % self.net_agents_per_line
+    def __next_west_neighbour(self, netAgent, number_of_agents, current_agent_nr):
+        next_parent = netAgent.position_in_net_x - 1
+        if next_parent == -1:
+            if ((current_agent_nr - 1) / self.net_agents_per_line) == ((number_of_agents - 1) / self.net_agents_per_line):
+                next_parent = (number_of_agents - 1) % self.net_agents_per_line
             else:
-                previous_parent_in_net = self.net_agents_per_line - 1
+                next_parent = self.net_agents_per_line - 1
+        return next_parent
 
-        return self.__get_agent(list_of_agents, previous_parent_in_net, netAgent.position_in_net_y)
-
-    def get_east_neighbour(self, netAgent):
-        ns = Pyro4.locateNS(self.ns_hostname)
-        list_of_agents = ns.list(AGENT)
-        number_of_agents = len(list_of_agents)
-        agent_nr = netAgent.position_in_net_y * self.net_agents_per_line + netAgent.position_in_net_x + 1
-
-        next_parent_in_net = netAgent.position_in_net_x + 1
-        if agent_nr == number_of_agents or next_parent_in_net == self.net_agents_per_line:
-            next_parent_in_net = 0
-
-        return self.__get_agent(list_of_agents, next_parent_in_net, netAgent.position_in_net_y)
-
-    def migrate_west(self, subAgent, posy):
-        previous_parent = self.get_west_neighbour(subAgent.parent)
-        subAgent.position.x = self.net_dimensions.x - 1
-        previous_parent.add_existing_agent(subAgent.parent.remove_agent(subAgent), self.net_dimensions.x - 1, posy)
-
-    def migrate_east(self, subAgent, posy):
-        current_parent = subAgent.parent
-        next_parent = self.get_east_neighbour(current_parent)
-        subAgent.position.y = 0
-        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), 0, posy)
-
-    def migrate_south(self, subAgent, posx):
-        current_parent = subAgent.parent
-        next_parent = self.get_south_neighbour(current_parent)
-        subAgent.position.y = self.net_dimensions.y - 1
-        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), posx, self.net_dimensions.y - 1)
-
-    def migrate_north(self, subAgent, posx):
-        current_parent = subAgent.parent
-        next_parent = self.get_north_neighbour(current_parent)
-        subAgent.position.y = 0
-        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), posx, 0)
+    def __next_east_neighbour(self, netAgent, number_of_agents, current_agent_nr):
+        next_parent = netAgent.position_in_net_x + 1
+        if current_agent_nr == number_of_agents or next_parent == self.net_agents_per_line:
+            next_parent = 0
+        return next_parent
 
     def __get_agent(self, agents, agent_nr_x, agent_nr_y):
         for agent in agents:
@@ -98,15 +91,3 @@ class CrossBorderMigration(Migration):
             if currAgent.get_position_in_net_x() == agent_nr_x and currAgent.get_position_in_net_y() == agent_nr_y:
                 return currAgent
         return None
-
-    def update_border(self, netAgent):
-        border = netAgent.get_border()
-        border.clear()
-        neighbour = self.get_north_neighbour(netAgent)
-        border.addAgents(BorderType.N, neighbour.get_border_s())
-        neighbour = self.get_south_neighbour(netAgent)
-        border.addAgents(BorderType.S, neighbour.get_border_n())
-        neighbour = self.get_west_neighbour(netAgent)
-        border.addAgents(BorderType.E, neighbour.get_border_w())
-        neighbour = self.get_east_neighbour(netAgent)
-        border.addAgents(BorderType.W, neighbour.get_border_e())
