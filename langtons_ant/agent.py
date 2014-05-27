@@ -69,9 +69,9 @@ class NetAgent(Addressable):
         new_position_y = agent.position.y + vector.y
 
         if new_position_y >= self.net_dimensions.y:
-            agent.position.y = 0
+            self.migration.migrate_north(agent, agent.position.x)
         elif new_position_y < 0:
-            agent.position.y = self.net_dimensions.y - 1
+            self.migration.migrate_south(agent, agent.position.x)
         else:
             agent.position.y = new_position_y
 

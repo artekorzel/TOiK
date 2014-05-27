@@ -14,11 +14,33 @@ class CrossBorderMigration(Migration):
     def __init__(self):
         super(CrossBorderMigration, self).__init__()
 
-    def get_north_neighbour(self, agent):
-        return agent
+    def get_north_neighbour(self, netAgent):
+        ns = Pyro4.locateNS(self.ns_hostname)
+        list_of_agents = ns.list(AGENT)
+        number_of_agents = len(list_of_agents)
+        agent_nr = netAgent.position_in_net_y * self.net_agents_per_line + netAgent.position_in_net_x + 1
 
-    def get_south_neighbour(self, agent):
-        return agent
+        next_parent = netAgent.position_in_net_y + 1
+        if number_of_agents - agent_nr < self.net_agents_per_line:
+            next_parent = 0
+
+        return self.__get_agent(list_of_agents, netAgent.position_in_net_x, next_parent)
+
+
+    def get_south_neighbour(self, netAgent):
+        ns = Pyro4.locateNS(self.ns_hostname)
+        list_of_agents = ns.list(AGENT)
+        number_of_agents = len(list_of_agents)
+
+        next_parent = netAgent.position_in_net_y - 1
+        if next_parent < 0:
+            last_agent_position = (number_of_agents - 1) % self.net_agents_per_line
+            if netAgent.position_in_net_x <= last_agent_position:
+                next_parent = (number_of_agents - 1) / self.net_agents_per_line
+            else:
+                next_parent = (number_of_agents - 1) / self.net_agents_per_line - 1
+
+        return self.__get_agent(list_of_agents, netAgent.position_in_net_x, next_parent)
 
     def get_west_neighbour(self, netAgent):
         ns = Pyro4.locateNS(self.ns_hostname)
@@ -54,9 +76,21 @@ class CrossBorderMigration(Migration):
 
     def migrate_east(self, subAgent, posy):
         current_parent = subAgent.parent
-        next_parent = self.get_east_neighbour(subAgent.parent)
+        next_parent = self.get_east_neighbour(current_parent)
         subAgent.position.y = 0
         next_parent.add_existing_agent(current_parent.remove_agent(subAgent), 0, posy)
+
+    def migrate_south(self, subAgent, posx):
+        current_parent = subAgent.parent
+        next_parent = self.get_south_neighbour(current_parent)
+        subAgent.position.y = self.net_dimensions.y - 1
+        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), posx, self.net_dimensions.y - 1)
+
+    def migrate_north(self, subAgent, posx):
+        current_parent = subAgent.parent
+        next_parent = self.get_north_neighbour(current_parent)
+        subAgent.position.y = 0
+        next_parent.add_existing_agent(current_parent.remove_agent(subAgent), posx, 0)
 
     def __get_agent(self, agents, agent_nr_x, agent_nr_y):
         for agent in agents:
