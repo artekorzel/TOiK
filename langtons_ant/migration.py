@@ -3,7 +3,6 @@ import Pyro4
 from pyage.core.agent.agent import AGENT
 from pyage.core.inject import Inject
 from pyage.core.migration import Migration
-from langtons_ant import agent
 from langtons_ant.overlap import Direction
 
 logger = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ class CrossBorderMigration(Migration):
 
         return self.__get_agent(list_of_agents, next_parent_x, next_parent_y)
 
-    def update_bookmarks(self, netAgent):
+    def update_overlaps(self, netAgent):
         overlaps = netAgent.get_overlaps()
         overlaps.clear()
         neighbour = self.get_neighbour(netAgent, Direction.N)

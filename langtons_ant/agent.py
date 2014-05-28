@@ -1,7 +1,7 @@
 # coding=utf-8
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
-from langtons_ant.overlap import Overlaps, Direction
+from langtons_ant.overlap import Overlaps, Direction, OverlapAgent
 from langtons_ant.vector import random_vector, Vector
 
 
@@ -10,6 +10,8 @@ class NetAgent(Addressable):
     @Inject("sub_agents:_NetAgent__agents")
     @Inject("migration")
     @Inject("iterations_per_update")
+    @Inject("overlap_simulation")
+    @Inject("overlap_size")
     def __init__(self, position_in_net_x, position_in_net_y, name=None):
         super(NetAgent, self).__init__()
         self.position_in_net_x = position_in_net_x
@@ -57,72 +59,88 @@ class NetAgent(Addressable):
 
     def step(self):
         if self.iter % self.iterations_per_update == 0:
-            self.migration.update_bookmarks(self)
+            self.migration.update_overlaps(self)
             self.iter = 1;
         else:
             self.iter += 1
+
         for agent in self.__agents.values():
             agent.step()
 
-    def __move_agent(self, agent, vector):
+    def __move_agent(self, agent, x, y):
         self.__remove_agent_from_matrix(agent)
-        new_position_x = agent.position.x + vector.x
-        new_position_y = agent.position.y + vector.y
 
-        if new_position_y >= self.net_dimensions.y:
-            self.migration.migrate_direction(agent, agent.position.x, 0, Direction.N)
-        elif new_position_y < 0:
-            self.migration.migrate_direction(agent, agent.position.x, self.net_dimensions.y - 1, Direction.S)
+        if y >= self.net_dimensions.y:
+            self.migration.migrate_direction(agent, x, 0, Direction.S)
+        elif y < 0:
+            self.migration.migrate_direction(agent, x, self.net_dimensions.y - 1, Direction.N)
         else:
-            agent.position.y = new_position_y
+            agent.position.y = y
 
-            if new_position_x < 0:
-                self.migration.migrate_direction(agent, self.net_dimensions.x - 1, agent.position.y, Direction.W)
-            elif new_position_x >= self.net_dimensions.x:
-                self.migration.migrate_direction(agent, 0, agent.position.y, Direction.E)
+            if x < 0:
+                self.migration.migrate_direction(agent, self.net_dimensions.x - 1, y, Direction.W)
+            elif x >= self.net_dimensions.x:
+                self.migration.migrate_direction(agent, 0, y, Direction.E)
             else:
-                agent.position.x = new_position_x
+                agent.position.x = x
                 self.agents_matrix[agent.position.y][agent.position.x].append(agent)
 
     def move_agent(self, agent):
-        v = SubAgent.directions[agent.direction_index]
-        x = agent.position.x + v.x
-        y = agent.position.y + v.y
-        neighbours = self.get_neighbours(x, y, agent.position.x, agent.position.y)
-        if neighbours > 0:
+        vector = SubAgent.directions[agent.direction_index]
+        x = agent.position.x + vector.x
+        y = agent.position.y + vector.y
+        neighbours = self.can_move(x, y)
+
+        if neighbours:
+            print "neighbours " + str(neighbours) + ' ' + str(x) + ' ' + str(y)
+            self.__print_matrix()
+            self.overlaps.print_overlaps()
             agent.turn_around()
         else:
-            self.__move_agent(agent, SubAgent.directions[agent.direction_index])
+            self.__move_agent(agent, x, y)
 
-    def get_neighbours(self, x, y, old_x, old_y):
+    def can_move(self, x, y):
+        if 0 <= x < self.net_dimensions.x and 0 <= y < self.net_dimensions.y:
+            return len(self.agents_matrix[y][x]) > 0
+        elif x < 0:
+            return self.overlaps.contains_agent(Direction.W, 0, y)
+        elif x >= self.net_dimensions.x:
+            return self.overlaps.contains_agent(Direction.E, 0, y)
+        elif y < 0:
+            return self.overlaps.contains_agent(Direction.N, x, 0)
+        return self.overlaps.contains_agent(Direction.S, x, 0)
+
+    def get_neighbours(self, x, y, direction):
         cnt = 0
-        if x < 1 or y < 0 or y == self.net_dimensions.y:
-            if self.overlaps.contains_agent(Direction.W, x - 1, y):
-                cnt += 1
-        else:
-            if x != old_x + 1:
-                cnt += len(self.agents_matrix[y][x - 1])
 
-        if x + 1 >= self.net_dimensions.x or y < 0 or y == self.net_dimensions.y:
-            if self.overlaps.contains_agent(Direction.E, x + 1, y):
-                cnt += 1
-        else:
-            if x + 1 != old_x:
-                cnt += len(self.agents_matrix[y][x + 1])
-
-        if y < 1 or x < 0 or x == self.net_dimensions.x:
-            if self.overlaps.contains_agent(Direction.S, x, y - 1):
-                cnt += 1
-        else:
-            if y - 1 != old_y:
-                cnt += len(self.agents_matrix[y - 1][x])
-
-        if y + 1 >= self.net_dimensions.y or x < 0 or x == self.net_dimensions.x:
-            if self.overlaps.contains_agent(Direction.N, x, y + 1):
-                cnt += 1
-        else:
-            if y + 1 != old_y:
-                cnt += len(self.agents_matrix[y + 1][x])
+        # Tu trzeba dużo bardziej skomplikowany algorytm...
+        # if x < 0 or y < 0 or y == self.net_dimensions.y:
+        #     if self.overlaps.contains_agent(Direction.W, x, y):
+        #         cnt += 1
+        # else:
+        #     if x != old_x + 1:
+        #         cnt += len(self.agents_matrix[y][x - 1])
+        #
+        # if x + 1 >= self.net_dimensions.x or y < 0 or y == self.net_dimensions.y:
+        #     if self.overlaps.contains_agent(Direction.E, x + 1, y):
+        #         cnt += 1
+        # else:
+        #     if x + 1 != old_x:
+        #         cnt += len(self.agents_matrix[y][x + 1])
+        #
+        # if y < 1 or x < 0 or x == self.net_dimensions.x:
+        #     if self.overlaps.contains_agent(Direction.S, x, y - 1):
+        #         cnt += 1
+        # else:
+        #     if y - 1 != old_y:
+        #         cnt += len(self.agents_matrix[y - 1][x])
+        #
+        # if y + 1 >= self.net_dimensions.y or x < 0 or x == self.net_dimensions.x:
+        #     if self.overlaps.contains_agent(Direction.N, x, y + 1):
+        #         cnt += 1
+        # else:
+        #     if y + 1 != old_y:
+        #         cnt += len(self.agents_matrix[y + 1][x])
 
         return cnt
 
@@ -135,32 +153,33 @@ class NetAgent(Addressable):
     def __append_to_ret(self, ret, tab, tab_i, ret_i):
         for agent in tab[tab_i]:
             if not not agent:
-                ret[ret_i].append(agent[0].position.x)
+                overlap_agent = OverlapAgent(agent[0].position, agent[0].direction_index)
+                ret[ret_i].append(overlap_agent)
 
     def get_overlaps(self):
         return self.overlaps
 
     def get_overlap(self, direction):
-        ret = [[] for _ in range(2)]
+        ret = [[] for _ in range(self.overlap_size)]
 
         if direction == Direction.N:
-            self.__append_to_ret(ret, self.agents_matrix, 0, 0)
-            self.__append_to_ret(ret, self.agents_matrix, 1, 1)
+            for i in range(self.overlap_size):
+                self.__append_to_ret(ret, self.agents_matrix, i, i)
         elif direction == Direction.S:
-            self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 1, 0)
-            self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 2, 1)
+            for i in range(self.overlap_size):
+                self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 1 - i, i)
         else:
-            overlap = [[] for _ in range(2)]
-            if direction == Direction.W:
+            overlap = [[] for _ in range(self.overlap_size)]
+            if direction == Direction.E:
                 for i in range(len(self.agents_matrix)):
-                    overlap[0].append(self.agents_matrix[i][self.net_dimensions.x - 1])
-                    overlap[1].append(self.agents_matrix[i][self.net_dimensions.x - 2])
+                    for j in range(self.overlap_size):
+                        overlap[j].append(self.agents_matrix[i][self.net_dimensions.x - 1 - j])
             else:
                 for i in range(len(self.agents_matrix)):
-                    overlap[0].append(self.agents_matrix[i][0])
-                    overlap[1].append(self.agents_matrix[i][1])
-            self.__append_to_ret(ret, overlap, 0, 0)
-            self.__append_to_ret(ret, overlap, 1, 1)
+                    for j in range(self.overlap_size):
+                        overlap[j].append(self.agents_matrix[i][j])
+            for i in range(self.overlap_size):
+                self.__append_to_ret(ret, overlap, i, i)
         return ret
 
     def __print_matrix(self):
