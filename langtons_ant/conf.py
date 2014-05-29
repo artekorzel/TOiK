@@ -15,7 +15,7 @@ from langtons_ant.net_agents_creation import net_agent
 
 logger = logging.getLogger(__name__)
 
-net_dimensions = lambda: Vector(100, 100)
+net_dimensions = lambda: Vector(5, 5)
 
 ns_hostname = lambda: os.environ['NS_HOSTNAME']
 
@@ -25,12 +25,12 @@ agents_per_net = 1
 agents = net_agent(NetAgent, net_agents_count, net_agents_per_line, ns_hostname)
 layers = lambda: [ColorLayer()]
 sub_agents = unnamed_agents(agents_per_net, SubAgent)
-iterations_per_update = lambda: 20
+iterations_per_update = lambda: 1
 
-overlap_size = lambda: 1
+overlap_size = lambda: 5
 overlap_simulation = lambda: True
 
-stop_condition = lambda: StepLimitStopCondition(15000)
+stop_condition = lambda: StepLimitStopCondition(5)
 
 address_provider = SequenceAddressProvider
 migration = CrossBorderMigration

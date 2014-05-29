@@ -63,6 +63,11 @@ class NetAgent(Addressable):
             self.iter = 1;
         else:
             self.iter += 1
+            # self.overlaps.simulate()
+
+        # self.__print_matrix()
+        # self.overlaps.print_overlaps()
+        # print
 
         for agent in self.__agents.values():
             agent.step()
@@ -150,10 +155,14 @@ class NetAgent(Addressable):
     def get_position_in_net_y(self):
         return self.position_in_net_y
 
-    def __append_to_ret(self, ret, tab, tab_i, ret_i):
+    def __append_to_ret(self, direction, ret, tab, tab_i, ret_i):
         for agent in tab[tab_i]:
             if not not agent:
-                overlap_agent = OverlapAgent(agent[0].position, agent[0].direction_index)
+                if direction == Direction.N or direction == Direction.S:
+                    position = Vector(ret_i, agent[0].position.x)
+                else:
+                    position = Vector(ret_i, agent[0].position.y)
+                overlap_agent = OverlapAgent(position, agent[0].direction_index)
                 ret[ret_i].append(overlap_agent)
 
     def get_overlaps(self):
@@ -164,10 +173,10 @@ class NetAgent(Addressable):
 
         if direction == Direction.N:
             for i in range(self.overlap_size):
-                self.__append_to_ret(ret, self.agents_matrix, i, i)
+                self.__append_to_ret(direction, ret, self.agents_matrix, i, i)
         elif direction == Direction.S:
             for i in range(self.overlap_size):
-                self.__append_to_ret(ret, self.agents_matrix, self.net_dimensions.y - 1 - i, i)
+                self.__append_to_ret(direction, ret, self.agents_matrix, self.net_dimensions.y - 1 - i, i)
         else:
             overlap = [[] for _ in range(self.overlap_size)]
             if direction == Direction.E:
@@ -179,7 +188,7 @@ class NetAgent(Addressable):
                     for j in range(self.overlap_size):
                         overlap[j].append(self.agents_matrix[i][j])
             for i in range(self.overlap_size):
-                self.__append_to_ret(ret, overlap, i, i)
+                self.__append_to_ret(direction, ret, overlap, i, i)
         return ret
 
     def __print_matrix(self):
