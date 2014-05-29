@@ -10,14 +10,14 @@ class NetAgent(Addressable):
     @Inject("sub_agents:_NetAgent__agents")
     @Inject("migration")
     @Inject("iterations_per_update")
-    @Inject("overlap_simulation")
+    @Inject("simulate_in_overlaps")
     @Inject("overlap_size")
     def __init__(self, position_in_net_x, position_in_net_y, name=None):
         super(NetAgent, self).__init__()
         self.position_in_net_x = position_in_net_x
         self.position_in_net_y = position_in_net_y
         self.name = name
-        self.agents_matrix = [[[] for i in range(self.net_dimensions.x)] for j in range(self.net_dimensions.y)]
+        self.agents_matrix = [[[] for _ in range(self.net_dimensions.x)] for _ in range(self.net_dimensions.y)]
         self.overlaps = Overlaps(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
@@ -63,11 +63,8 @@ class NetAgent(Addressable):
             self.iter = 1;
         else:
             self.iter += 1
-            # self.overlaps.simulate()
-
-        # self.__print_matrix()
-        # self.overlaps.print_overlaps()
-        # print
+            if self.simulate_in_overlaps:
+                self.overlaps.simulate()
 
         for agent in self.__agents.values():
             agent.step()
@@ -97,9 +94,6 @@ class NetAgent(Addressable):
         neighbours = self.can_move(x, y)
 
         if neighbours:
-            print "neighbours " + str(neighbours) + ' ' + str(x) + ' ' + str(y)
-            self.__print_matrix()
-            self.overlaps.print_overlaps()
             agent.turn_around()
         else:
             self.__move_agent(agent, x, y)

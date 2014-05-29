@@ -12,6 +12,7 @@ class Direction:
 
 class Overlaps:
     @Inject("overlap_size")
+    @Inject("overlap_simulation_agent_turnaround")
     def __init__(self, x_size, y_size):
         self.x_size = x_size
         self.y_size = y_size
@@ -62,6 +63,7 @@ class Overlaps:
 
     def __move_(self, agent, x, y):
         agent.overlap[x][y].append(agent)
+        self.agents.append(agent)
 
     def __move_agent(self, agent):
         agent.step()
@@ -77,10 +79,14 @@ class Overlaps:
                 agent.position.x = x
                 agent.position.y = y
                 self.__move_(agent, x, y)
+            elif self.overlap_simulation_agent_turnaround:
+                agent.turn_around()
+                self.__move_(agent, agent.position.x, agent.position.y)
 
     def simulate(self):
-        for agent in self.agents:
-            self.__move_agent(agent)
+        agents_len = len(self.agents)
+        for i in range(agents_len - 1, -1, -1):
+            self.__move_agent(self.agents[i])
 
 
     def clear(self):
@@ -106,9 +112,9 @@ class Overlaps:
 
     def print_overlaps(self):
         print "N:\n" + self.__get_printable_overlap(self.overlap_n)
-        print "S:" + self.__get_printable_overlap(self.overlap_s)
-        print "E:" + self.__get_printable_overlap(self.overlap_e)
-        print "W:" + self.__get_printable_overlap(self.overlap_w)
+        print "S:\n" + self.__get_printable_overlap(self.overlap_s)
+        print "E:\n" + self.__get_printable_overlap(self.overlap_e)
+        print "W:\n" + self.__get_printable_overlap(self.overlap_w)
         print
 
 
