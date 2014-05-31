@@ -3,7 +3,9 @@ from pyage.core.address import Addressable
 from pyage.core.inject import Inject
 from langtons_ant.overlap import Overlaps, Direction, OverlapAgent
 from langtons_ant.vector import random_vector, Vector
-
+from pyage.core.agent.agent import AGENT
+import Pyro4
+import time
 
 class NetAgent(Addressable):
     @Inject("locator", "net_dimensions", "layers")
@@ -12,6 +14,9 @@ class NetAgent(Addressable):
     @Inject("iterations_per_update")
     @Inject("simulate_in_overlaps")
     @Inject("overlap_size")
+    @Inject("ns_hostname")
+    @Inject("global_number_of_net_agents")
+    @Inject("waiting_interval")
     def __init__(self, position_in_net_x, position_in_net_y, name=None):
         super(NetAgent, self).__init__()
         self.position_in_net_x = position_in_net_x
@@ -21,6 +26,12 @@ class NetAgent(Addressable):
         self.overlaps = Overlaps(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
+        ns = Pyro4.locateNS(self.ns_hostname)
+        print "Waiting for other hosts..."
+        print self.global_number_of_net_agents
+        while(len(ns.list(AGENT)) < self.global_number_of_net_agents):
+            time.sleep(self.waiting_interval)
+        print "Start"
         self.iter = 0
 
     def __add_agent(self, agent):
