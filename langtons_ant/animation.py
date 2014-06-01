@@ -1,21 +1,29 @@
 import random
 import pyglet
-from pyage.core.inject import Inject
-import time
+import sys
 
 i = 1
 ants = {}
+animation = True
 moreFiles = True
 first = True
 second = False
 third = False
+tile_width = 13;
+tile_height = 13;
+nets_y = 0
+nets_x = 0
 
 with open('../config.txt') as f:
     content = f.read()
     args = content.split(' ')
     x = int(args[0])
     y = int(args[1])
-    xAgents = int(args[2])
+    agents_per_line = int(args[2])
+    agents_count = int(args[3])
+    nets_x = agents_per_line
+    nets_y = agents_count/agents_per_line
+
 
 def next_step(dt):
     global i, moreFiles
@@ -42,29 +50,59 @@ def next_step(dt):
 
 
 window = pyglet.window.Window(resizable=False)
-window.set_size(xAgents*(x*13+x-1)+2*(xAgents)-1, y*13+y-1)
-ant_imageN = pyglet.image.load('antN.png')
-ant_imageS = pyglet.image.load('antS.png')
-ant_imageW = pyglet.image.load('antW.png')
-ant_imageE = pyglet.image.load('antE.png')
+platform = pyglet.window.get_platform()
+display = platform.get_default_display()
+screen = display.get_default_screen()
+screen_height = screen.height
+screen_width = screen.width
+
+if nets_y*(y+1)*tile_height > screen_height:
+    tile_height = screen_height/(nets_y*(y+1))
+if nets_x*(x+1)*tile_width > screen_width:
+    tile_width = screen_width/(nets_x*(x+1))
+ant_scale = min(tile_width, tile_height)* 1.0/13.0
+
+window.set_size(agents_per_line*(x*tile_width+x-1)+2*(agents_per_line)-1, (agents_count/agents_per_line)*y*tile_height+(agents_count/agents_per_line)-1)
+
+
+
+ant_spriteN = pyglet.sprite.Sprite(pyglet.image.load('antN.png'))
+ant_spriteS = pyglet.sprite.Sprite(pyglet.image.load('antS.png'))
+ant_spriteW = pyglet.sprite.Sprite(pyglet.image.load('antW.png'))
+ant_spriteE = pyglet.sprite.Sprite(pyglet.image.load('antE.png'))
 
 
 @window.event
 def on_draw():
+    draw_one_step()
+
+
+def draw_one_step():
     pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
     draw_background()
     for ant in ants:
-        # print ant
         if len(ants[ant]) > 2:
             for i in range(len(ants[ant])-3, len(ants[ant])-1):
-            # for position in ants[ant]:
                 set_color(ant, ants[ant][i][2])
-                offset = (ants[ant][i][0]/x)*2
-                pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,('v2i', (offset+ants[ant][i][0]*14,0+ants[ant][i][1]*14,offset+ants[ant][i][0]*14,13+ants[ant][i][1]*14,offset+13+ants[ant][i][0]*14,13+ants[ant][i][1]*14,offset+13+ants[ant][i][0]*14,0+ants[ant][i][1]*14)))
+                x_offset = (ants[ant][i][0]/x)*2
+                y_offset = (ants[ant][i][1]/y)*2
+                pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,('v2i', (
+                    x_offset+ants[ant][i][0]*(tile_width+1),
+                    y_offset+ants[ant][i][1]*(tile_height+1),
+                    x_offset+ants[ant][i][0]*(tile_width+1),
+                    y_offset+tile_height+ants[ant][i][1]*(tile_height+1),
+                    x_offset+tile_width+ants[ant][i][0]*(tile_width+1),
+                    y_offset+tile_height+ants[ant][i][1]*(tile_height+1),
+                    x_offset+tile_width+ants[ant][i][0]*(tile_width+1),
+                    y_offset+ants[ant][i][1]*(tile_height+1))))
             position = ants[ant][len(ants[ant])-1]
             set_color(ant, position[2])
-            offset = (position[0]/x)*2
-            draw_rotated_ant(position[3]).blit(position[0]*14+offset, position[1]*14)
+            x_offset = (position[0]/x)*2
+            y_offset = (position[1]/y)*2
+            ant_sprite = draw_rotated_ant(position[3])
+            ant_sprite.set_position(position[0]*(tile_width+1)+x_offset, position[1]*(tile_height+1) + y_offset)
+            ant_sprite.scale = ant_scale
+            ant_sprite.draw()
 
     # image.blit(0,0)
 
@@ -72,28 +110,49 @@ def draw_background():
     global first, second, third, x, y
     if third:
         pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        for k in range(0, xAgents):
-            draw_net(k*x*14+k*2, 0, x, y)
+        for k in range(0, agents_count):
+            x_start = k % agents_per_line
+            y_start = k / agents_per_line
+            draw_net(x_start * x * (tile_width+1) + x_start * 2,
+                     y_start * y * (tile_height+1) + y_start * 2,
+                     x,
+                     y)
         third = False
     if second:
         pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        for k in range(0, xAgents):
-            draw_net(k*x*14+k*2, 0, x, y)
+        for k in range(0, agents_count):
+            x_start = k % agents_per_line
+            y_start = k / agents_per_line
+            draw_net(x_start * x * (tile_width+1) + x_start * 2,
+                     y_start * y * (tile_height+1) + y_start * 2,
+                     x,
+                     y)
         second = False
         third = True
     if first:
         pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        for k in range(0, xAgents):
-            draw_net(k*x*14+k*2, 0, x, y)
+        for k in range(0, agents_count):
+            x_start = k % agents_per_line
+            y_start = k / agents_per_line
+            draw_net(x_start * x * (tile_width+1) + x_start * 2,
+                     y_start * y * (tile_height+1) + y_start * 2,
+                     x,
+                     y)
         first = False
         second = True
 
 def draw_net(x, y, x_dim, y_dim):
-    print x
     pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
     for i in range(0, x_dim):
         for j in range(0, y_dim):
-            pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,('v2i', (x+i*14,j*14,x+i*14,13+j*14,x+13+i*14,13+j*14,x+13+i*14,j*14)))
+            pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,('v2i', (x+i*(tile_width+1),
+                                                                y+j*(tile_height+1),
+                                                                x+i*(tile_width+1),
+                                                                y+tile_height+j*(tile_height+1),
+                                                                x+tile_width+i*(tile_width+1),
+                                                                y+tile_height+j*(tile_height+1),
+                                                                x+tile_width+i*(tile_width+1),
+                                                                y+j*(tile_height+1))))
 
 def set_color(color, on):
     if(on == 0):
@@ -107,11 +166,11 @@ def set_color(color, on):
 
 def draw_rotated_ant(direction):
     return {
-        0:ant_imageE,
-        1:ant_imageS,
-        2:ant_imageW,
-        3:ant_imageN
+        0:ant_spriteW,
+        1:ant_spriteS,
+        2:ant_spriteE,
+        3:ant_spriteN
     }[direction]
 
-pyglet.clock.schedule_interval(next_step, 1/100.0)
+pyglet.clock.schedule_interval(next_step, 1/1000.0)
 pyglet.app.run()

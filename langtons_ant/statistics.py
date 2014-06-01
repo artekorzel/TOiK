@@ -1,8 +1,11 @@
 # coding=utf-8
+from pyage.core.inject import Inject
 from pyage.core.statistics import Statistics
 
 
 class PositionStatistics(Statistics):
+    @Inject("net_agents_per_line")
+    @Inject("net_agents_count")
     def __init__(self, output_file_name="positions_%d.txt"):
         self.output_file_name = output_file_name
         self.config = True
@@ -11,7 +14,7 @@ class PositionStatistics(Statistics):
         if self.config == True:
             with open("../config.txt", "w") as out:
                 out.write(
-                    "%d %d %d\n" % (net_agents[0].net_dimensions.x, net_agents[0].net_dimensions.y, len(net_agents)))
+                    "%d %d %d %d\n" % (net_agents[0].net_dimensions.x, net_agents[0].net_dimensions.y, self.net_agents_per_line, self.net_agents_count))
             self.config = False;
 
         with open(self.output_file_name % step_count, "w") as out:
