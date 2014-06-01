@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	ITER="1"
+	ITER="0"
 else
 	ITER=$1
 fi
