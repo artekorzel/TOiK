@@ -61,13 +61,15 @@ screen = display.get_default_screen()
 screen_height = screen.height
 screen_width = screen.width
 
-if nets_y*(y+1)*tile_height > screen_height:
-    tile_height = screen_height/(nets_y*(y+1))
-if nets_x*(x+1)*tile_width > screen_width:
-    tile_width = screen_width/(nets_x*(x+1))
+if (nets_y)*(y*tile_height+y-1)+2*(nets_y)-1 > screen_height:
+    tile_height = (screen_height - (nets_y * y + 2 * (nets_y - 1)))/(nets_y * (y + 1))
+if nets_x*(x*tile_width+x-1)+2*(nets_x)-1 > screen_width:
+    tile_width = (screen_width - (nets_x * x + 2 * (nets_x -1)))/(nets_x * (x + 1))
 ant_scale = min(tile_width, tile_height)* 1.0/13.0
-
-window.set_size(agents_per_line*(x*tile_width+x-1)+2*(agents_per_line)-1, (agents_count/agents_per_line)*y*tile_height+y-1+2*(agents_count/agents_per_line)-1)
+print nets_x, x, tile_width
+print nets_y, y, tile_height
+print (nets_y)*(y*tile_height+y-1)+2*(nets_y)-1
+window.set_size(nets_x*(x*tile_width+x-1)+2*(nets_x)-1, (nets_y)*(y*tile_height+y-1)+2*(nets_y-1))
 
 
 
