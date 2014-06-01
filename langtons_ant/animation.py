@@ -13,6 +13,11 @@ tile_width = 13;
 tile_height = 13;
 nets_y = 0
 nets_x = 0
+display_iteration = 0
+if len(sys.argv) == 2:
+    display_iteration = int(sys.argv[1])
+    animation = False
+
 
 with open('../config.txt') as f:
     content = f.read()
@@ -62,7 +67,7 @@ if nets_x*(x+1)*tile_width > screen_width:
     tile_width = screen_width/(nets_x*(x+1))
 ant_scale = min(tile_width, tile_height)* 1.0/13.0
 
-window.set_size(agents_per_line*(x*tile_width+x-1)+2*(agents_per_line)-1, (agents_count/agents_per_line)*y*tile_height+(agents_count/agents_per_line)-1)
+window.set_size(agents_per_line*(x*tile_width+x-1)+2*(agents_per_line)-1, (agents_count/agents_per_line)*y*tile_height+y-1+2*(agents_count/agents_per_line)-1)
 
 
 
@@ -78,24 +83,38 @@ def on_draw():
 
 
 def draw_one_step():
+    global display_iteration, i
     pyglet.gl.glColor4f(1.0, 1.0, 1.0, 1.0)
     draw_background()
     for ant in ants:
-        if len(ants[ant]) > 2:
-            for i in range(len(ants[ant])-3, len(ants[ant])-1):
-                set_color(ant, ants[ant][i][2])
-                x_offset = (ants[ant][i][0]/x)*2
-                y_offset = (ants[ant][i][1]/y)*2
+        min = 0
+        max = len(ants[ant])-1
+        if display_iteration == 0:
+            if len(ants[ant]) > 3:
+                min = len(ants[ant])-4
+        else:
+            max = display_iteration
+        if max < i:
+            for step in range(min, max):
+                set_color(ant, ants[ant][step][2])
+                x_offset = (ants[ant][step][0]/x)*2
+                y_offset = (ants[ant][step][1]/y)*2
                 pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,('v2i', (
-                    x_offset+ants[ant][i][0]*(tile_width+1),
-                    y_offset+ants[ant][i][1]*(tile_height+1),
-                    x_offset+ants[ant][i][0]*(tile_width+1),
-                    y_offset+tile_height+ants[ant][i][1]*(tile_height+1),
-                    x_offset+tile_width+ants[ant][i][0]*(tile_width+1),
-                    y_offset+tile_height+ants[ant][i][1]*(tile_height+1),
-                    x_offset+tile_width+ants[ant][i][0]*(tile_width+1),
-                    y_offset+ants[ant][i][1]*(tile_height+1))))
-            position = ants[ant][len(ants[ant])-1]
+                    x_offset+ants[ant][step][0]*(tile_width+1),
+                    y_offset+ants[ant][step][1]*(tile_height+1),
+                    x_offset+ants[ant][step][0]*(tile_width+1),
+                    y_offset+tile_height+ants[ant][step][1]*(tile_height+1),
+                    x_offset+tile_width+ants[ant][step][0]*(tile_width+1),
+                    y_offset+tile_height+ants[ant][step][1]*(tile_height+1),
+                    x_offset+tile_width+ants[ant][step][0]*(tile_width+1),
+                    y_offset+ants[ant][step][1]*(tile_height+1))))
+    for ant in ants:
+        if display_iteration == 0:
+            max = len(ants[ant])-1
+        else:
+            max = display_iteration
+        if max < i:
+            position = ants[ant][max-1]
             set_color(ant, position[2])
             x_offset = (position[0]/x)*2
             y_offset = (position[1]/y)*2

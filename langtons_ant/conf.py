@@ -15,10 +15,10 @@ from langtons_ant.net_agents_creation import net_agent
 
 logger = logging.getLogger(__name__)
 
-stop_condition = lambda: StepLimitStopCondition(10)
-net_dimensions = lambda: Vector(50, 50)
+stop_condition = lambda: StepLimitStopCondition(1000)
+net_dimensions = lambda: Vector(10, 10)
 net_agents_per_line = lambda: 2
-net_agents_count = lambda: 4
+net_agents_count = lambda: 2
 agents_per_net = 2
 layers = lambda: [ColorLayer()]
 
