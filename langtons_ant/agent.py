@@ -29,7 +29,7 @@ class NetAgent(Addressable):
         self.overlaps = Overlaps(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
-        # ns = Pyro4.locateNS(self.ns_hostname)
+            # ns = Pyro4.locateNS(self.ns_hostname)
         # print "Waiting for other hosts..."
         # print self.global_number_of_net_agents
         # while(len(ns.list(AGENT)) < self.global_number_of_net_agents):
@@ -74,12 +74,14 @@ class NetAgent(Addressable):
         return self.__agents.values()
 
     def increase_start_step_agents(self):
+        print "IncStart+start", str(self.name), str(self.start_step_agents)
         self.start_step_agents += 1
-        print "IncStart", str(self.name), str(self.start_step_agents)
+        print "IncStart+end", str(self.name), str(self.start_step_agents)
 
     def increase_end_step_agents(self):
+        print "IncEnd+start", str(self.name), str(self.end_step_agents)
         self.end_step_agents += 1
-        print "IncEnd", str(self.name), str(self.end_step_agents)
+        print "IncEnd+end", str(self.name), str(self.end_step_agents)
 
     def __check_all_agents_present(self):
         ns = Pyro4.locateNS(self.ns_hostname)
@@ -100,8 +102,9 @@ class NetAgent(Addressable):
         for agent in agents:
             print "incStart ", agent, self.name
             proxy = Pyro4.Proxy(agents[agent])
-            proxy.increase_step_agents()
+            proxy.increase_start_step_agents()
 
+        print "BEFORE WAIT", str(self.name)
         while self.start_step_agents != self.global_number_of_net_agents:
             time.sleep(1)
 
@@ -115,7 +118,7 @@ class NetAgent(Addressable):
         for agent in agents:
             print "incEnd ", agent, self.name
             proxy = Pyro4.Proxy(agents[agent])
-            proxy.decrease_step_agents()
+            proxy.increase_end_step_agents()
 
         while self.end_step_agents != self.global_number_of_net_agents:
             time.sleep(1)
