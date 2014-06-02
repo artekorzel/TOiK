@@ -1,11 +1,14 @@
 # coding=utf-8
+import time
+
 from pyage.core.address import Addressable
 from pyage.core.inject import Inject
-from langtons_ant.overlap import Overlaps, Direction, OverlapAgent
-from langtons_ant.vector import random_vector, Vector
 from pyage.core.agent.agent import AGENT
 import Pyro4
-import time
+
+from langtons_ant.overlap import Overlaps, Direction, OverlapAgent
+from langtons_ant.vector import random_vector, Vector
+
 
 class NetAgent(Addressable):
     @Inject("locator", "net_dimensions", "layers")
@@ -26,13 +29,15 @@ class NetAgent(Addressable):
         self.overlaps = Overlaps(self.net_dimensions.x, self.net_dimensions.y)
         for agent in self.__agents.values():
             self.__add_agent(agent)
-        ns = Pyro4.locateNS(self.ns_hostname)
-        print "Waiting for other hosts..."
-        print self.global_number_of_net_agents
-        while(len(ns.list(AGENT)) < self.global_number_of_net_agents):
-            time.sleep(self.waiting_interval)
-        print "Start"
+        # ns = Pyro4.locateNS(self.ns_hostname)
+        # print "Waiting for other hosts..."
+        # print self.global_number_of_net_agents
+        # while(len(ns.list(AGENT)) < self.global_number_of_net_agents):
+        #     time.sleep(self.waiting_interval)
+        # print "Start"
         self.iter = 0
+        self.start_step_agents = 0
+        self.end_step_agents = 0
 
     def __add_agent(self, agent):
         agent.parent = self
@@ -68,7 +73,58 @@ class NetAgent(Addressable):
     def get_agents(self):
         return self.__agents.values()
 
+    def increase_start_step_agents(self):
+        self.start_step_agents += 1
+        print "IncStart", str(self.name), str(self.start_step_agents)
+
+    def increase_end_step_agents(self):
+        self.end_step_agents += 1
+        print "IncEnd", str(self.name), str(self.end_step_agents)
+
+    def __check_all_agents_present(self):
+        ns = Pyro4.locateNS(self.ns_hostname)
+        print ns.list(AGENT)
+        return len(ns.list(AGENT)) == self.global_number_of_net_agents
+
+    def __get_all_agents(self):
+        ns = Pyro4.locateNS(self.ns_hostname)
+        return ns.list(AGENT)
+
+    def __synchronize_start(self):
+        while not self.__check_all_agents_present():
+            time.sleep(self.waiting_interval)
+
+        self.end_step_agents = 0
+
+        agents = self.__get_all_agents()
+        for agent in agents:
+            print "incStart ", agent, self.name
+            proxy = Pyro4.Proxy(agents[agent])
+            proxy.increase_step_agents()
+
+        while self.start_step_agents != self.global_number_of_net_agents:
+            time.sleep(1)
+
+    def __synchronize_end(self):
+        while not self.__check_all_agents_present():
+            time.sleep(self.waiting_interval)
+
+        self.start_step_agents = 0
+
+        agents = self.__get_all_agents()
+        for agent in agents:
+            print "incEnd ", agent, self.name
+            proxy = Pyro4.Proxy(agents[agent])
+            proxy.decrease_step_agents()
+
+        while self.end_step_agents != self.global_number_of_net_agents:
+            time.sleep(1)
+
     def step(self):
+
+        self.__synchronize_start()
+
+        print "Agent", self.name, "starts iteration", self.iter
         if self.iter % self.iterations_per_update == 0:
             self.migration.update_overlaps(self)
             self.iter = 1;
@@ -79,6 +135,8 @@ class NetAgent(Addressable):
 
         for agent in self.__agents.values():
             agent.step()
+
+        self.__synchronize_end()
 
     def __move_agent(self, agent, x, y):
         self.__remove_agent_from_matrix(agent)

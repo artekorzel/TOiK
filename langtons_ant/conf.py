@@ -16,22 +16,22 @@ from math import sqrt
 
 logger = logging.getLogger(__name__)
 
-stop_condition = lambda: StepLimitStopCondition(12000)
-net_dimensions = lambda: Vector(100, 100)
+stop_condition = lambda: StepLimitStopCondition(20)
+net_dimensions = lambda: Vector(50, 50)
 
 
 # Distributed environment settings
 number_of_hosts = lambda: 2
-global_number_of_net_agents = lambda: 4  # square root must be an integer
+global_number_of_net_agents = lambda: 2  # square root must be an integer
 net_agents_per_host = lambda: global_number_of_net_agents() / number_of_hosts()
-net_agents_per_line = lambda: sqrt(global_number_of_net_agents())
+net_agents_per_line = lambda: int(sqrt(global_number_of_net_agents()))
 waiting_interval = lambda: 3  # frequency of checking presence of all net_agents (in seconds)
 # ================================
 
-agents_per_net = 6
+agents_per_net = 1
 layers = lambda: [ColorLayer()]
 
-iterations_per_update = lambda: 100
+iterations_per_update = lambda: 5
 overlap_size = lambda: 5
 simulate_in_overlaps = lambda: True
 overlap_simulation_agent_turnaround = lambda: True
