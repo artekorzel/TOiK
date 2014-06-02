@@ -6,4 +6,4 @@ else
 	ITER=$1
 fi
 
-python langtons_ant/animation.py $ITER
+python -m langtons_ant.animation.py $ITER
