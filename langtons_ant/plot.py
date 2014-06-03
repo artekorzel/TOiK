@@ -16,7 +16,7 @@ for filename in filenames:
             content = f.read().splitlines()
             for line in content:
                 args = line.split(' ')
-                agentNr = int(args[0].split('.')[0])
+                agentNr = (args[0].split('.')[0]) + args[0].split('.')[2]
                 xPos = int(args[1])
                 yPos = int(args[2])
 
