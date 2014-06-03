@@ -5,7 +5,7 @@ from pyage.core.statistics import Statistics
 
 class PositionStatistics(Statistics):
     @Inject("net_agents_per_line")
-    @Inject("net_agents_count")
+    @Inject("net_agents_per_host")
     def __init__(self, output_file_name="positions_%d.txt"):
         self.output_file_name = output_file_name
         self.config = True

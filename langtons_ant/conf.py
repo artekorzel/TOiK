@@ -17,7 +17,7 @@ from math import sqrt
 logger = logging.getLogger(__name__)
 
 stop_condition = lambda: StepLimitStopCondition(20)
-net_dimensions = lambda: Vector(50, 50)
+net_dimensions = lambda: Vector(15, 15)
 
 
 # Distributed environment settings
@@ -28,7 +28,7 @@ net_agents_per_line = lambda: int(sqrt(global_number_of_net_agents()))
 waiting_interval = lambda: 3  # frequency of checking presence of all net_agents (in seconds)
 # ================================
 
-agents_per_net = 1
+agents_per_net = 6
 layers = lambda: [ColorLayer()]
 
 iterations_per_update = lambda: 5

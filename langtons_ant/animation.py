@@ -8,12 +8,12 @@ inject.config = 'langtons_ant.conf'
 
 
 class AnimationParams(object):
-    @Inject("net_dimensions", "net_agents_per_line", "net_agents_count")
+    @Inject("net_dimensions", "net_agents_per_line", "net_agents_per_host")
     def __init__(self):
         pass
 
     def get_parameters(self):
-        return self.net_agents_per_line, self.net_agents_count, self.net_dimensions.x, self.net_dimensions.y
+        return self.net_agents_per_line, self.net_agents_per_host, self.net_dimensions.x, self.net_dimensions.y
 
 
 i = 1
