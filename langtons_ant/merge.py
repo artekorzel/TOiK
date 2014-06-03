@@ -18,5 +18,4 @@ for dir in dirs:
                     for line in content:
                         val = 'result/' + filename
                         with open(val, "a") as file:
-                            print "merging in ", val
                             file.write(line + '\n')
