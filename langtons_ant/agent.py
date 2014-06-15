@@ -71,9 +71,11 @@ class NetAgent(Addressable):
 
     def increase_start_step_agents(self):
         self.start_step_agents += 1
+        return self.start_step_agents
 
     def increase_end_step_agents(self):
         self.end_step_agents += 1
+        return self.end_step_agents
 
     def __check_all_agents_present(self):
         ns = Pyro4.locateNS(self.ns_hostname)
@@ -114,6 +116,7 @@ class NetAgent(Addressable):
     def step(self):
 
         if self.big_iter == 0:
+            Pyro4.config.COMMTIMEOUT = 0  # overrides timeout set by pyage. It's ugly but works.
             self.__synchronize_start()
 
         self.big_iter += 1
@@ -179,7 +182,7 @@ class NetAgent(Addressable):
 
         # Tu trzeba dużo bardziej skomplikowany algorytm...
         # if x < 0 or y < 0 or y == self.net_dimensions.y:
-        #     if self.overlaps.contains_agent(Direction.W, x, y):
+        # if self.overlaps.contains_agent(Direction.W, x, y):
         #         cnt += 1
         # else:
         #     if x != old_x + 1:
