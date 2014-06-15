@@ -8,7 +8,7 @@ if not 'result' in dirs:
 
 for dir in dirs:
     if dir != 'merge.py' and dir != 'result':
-        dir += '/positions/'
+        dir += '/' #positions/'
         filenames = os.listdir(dir)
         filenames.sort()
         for filename in filenames:

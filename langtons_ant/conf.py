@@ -16,9 +16,9 @@ from math import sqrt
 
 logger = logging.getLogger(__name__)
 
-stop_condition = lambda: StepLimitStopCondition(20)
-net_dimensions = lambda: Vector(15, 15)
-
+number_of_iterations = lambda: 10000
+stop_condition = lambda: StepLimitStopCondition(number_of_iterations())
+net_dimensions = lambda: Vector(50, 50)
 
 # Distributed environment settings
 number_of_hosts = lambda: 2
@@ -31,7 +31,7 @@ waiting_interval = lambda: 3  # frequency of checking presence of all net_agents
 agents_per_net = 6
 layers = lambda: [ColorLayer()]
 
-iterations_per_update = lambda: 5
+iterations_per_update = lambda: 50
 overlap_size = lambda: 5
 simulate_in_overlaps = lambda: True
 overlap_simulation_agent_turnaround = lambda: True

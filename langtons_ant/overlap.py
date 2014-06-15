@@ -88,7 +88,6 @@ class Overlaps:
         for i in range(agents_len - 1, -1, -1):
             self.__move_agent(self.agents[i])
 
-
     def clear(self):
         self.overlap_n = [[[] for _ in range(self.x_size)] for _ in range(self.overlap_size)]
         self.overlap_s = [[[] for _ in range(self.x_size)] for _ in range(self.overlap_size)]

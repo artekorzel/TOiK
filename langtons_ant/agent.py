@@ -20,6 +20,7 @@ class NetAgent(Addressable):
     @Inject("ns_hostname")
     @Inject("global_number_of_net_agents")
     @Inject("waiting_interval")
+    @Inject("number_of_iterations")
     def __init__(self, position_in_net_x, position_in_net_y, name=None):
         super(NetAgent, self).__init__()
         self.position_in_net_x = position_in_net_x
@@ -32,6 +33,7 @@ class NetAgent(Addressable):
         self.iter = 0
         self.start_step_agents = 0
         self.end_step_agents = 0
+        self.big_iter = 0
 
     def __add_agent(self, agent):
         agent.parent = self
@@ -111,9 +113,14 @@ class NetAgent(Addressable):
 
     def step(self):
 
-        self.__synchronize_start()
+        if self.big_iter == 0:
+            self.__synchronize_start()
+
+        self.big_iter += 1
 
         if self.iter % self.iterations_per_update == 0:
+            # self.__synchronize_end()
+            # self.__synchronize_start()
             self.migration.update_overlaps(self)
             self.iter = 1;
         else:
@@ -124,7 +131,8 @@ class NetAgent(Addressable):
         for agent in self.__agents.values():
             agent.step()
 
-        self.__synchronize_end()
+        if self.big_iter == self.number_of_iterations:
+            self.__synchronize_end()
 
     def __move_agent(self, agent, x, y):
         self.__remove_agent_from_matrix(agent)
