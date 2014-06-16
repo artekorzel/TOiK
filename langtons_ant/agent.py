@@ -34,6 +34,7 @@ class NetAgent(Addressable):
         self.start_step_agents = 0
         self.end_step_agents = 0
         self.big_iter = 0
+        self.start_time = 0
 
     def __add_agent(self, agent):
         agent.parent = self
@@ -114,10 +115,10 @@ class NetAgent(Addressable):
             time.sleep(1)
 
     def step(self):
-
         if self.big_iter == 0:
             Pyro4.config.COMMTIMEOUT = 0  # overrides timeout set by pyage. It's ugly but works.
             self.__synchronize_start()
+            self.start_time = time.clock()
 
         self.big_iter += 1
 
@@ -136,6 +137,7 @@ class NetAgent(Addressable):
 
         if self.big_iter == self.number_of_iterations:
             self.__synchronize_end()
+            print "total time:", time.clock() - self.start_time,"s"
 
     def __move_agent(self, agent, x, y):
         self.__remove_agent_from_matrix(agent)
