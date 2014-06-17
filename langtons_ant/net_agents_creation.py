@@ -21,6 +21,9 @@ def net_agent(type, net_agents_per_host, net_agents_per_line, ns_hostname):
             if agents_in_line % net_agents_per_line() == 0:
                 agents_in_line = 0
                 lines_of_agents += 1
+            elif len(agents) == 0:
+                agents_in_line = current_number_of_agents % net_agents_per_line()
+                lines_of_agents += 1
             print "creating agent in [", str(agents_in_line), ", ", str(lines_of_agents), "]"
             agent = type(agents_in_line, lines_of_agents)
             agent.name = agent.get_address()

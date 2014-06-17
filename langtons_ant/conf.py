@@ -21,8 +21,8 @@ stop_condition = lambda: StepLimitStopCondition(number_of_iterations())
 net_dimensions = lambda: Vector(100, 100)
 
 # Distributed environment settings
-number_of_hosts = lambda: 2
-global_number_of_net_agents = lambda: 4  # square root must be an integer
+number_of_hosts = lambda: 16
+global_number_of_net_agents = lambda: 16  # square root must be an integer
 net_agents_per_host = lambda: global_number_of_net_agents() / number_of_hosts()
 net_agents_per_line = lambda: int(sqrt(global_number_of_net_agents()))
 waiting_interval = lambda: 3  # frequency of checking presence of all net_agents (in seconds)
