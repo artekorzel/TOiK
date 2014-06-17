@@ -16,19 +16,19 @@ from math import sqrt
 
 logger = logging.getLogger(__name__)
 
-number_of_iterations = lambda: 10000
+number_of_iterations = lambda: 1000
 stop_condition = lambda: StepLimitStopCondition(number_of_iterations())
-net_dimensions = lambda: Vector(50, 50)
+net_dimensions = lambda: Vector(100, 100)
 
 # Distributed environment settings
 number_of_hosts = lambda: 2
-global_number_of_net_agents = lambda: 2  # square root must be an integer
+global_number_of_net_agents = lambda: 4  # square root must be an integer
 net_agents_per_host = lambda: global_number_of_net_agents() / number_of_hosts()
 net_agents_per_line = lambda: int(sqrt(global_number_of_net_agents()))
 waiting_interval = lambda: 3  # frequency of checking presence of all net_agents (in seconds)
 # ================================
 
-agents_per_net = 6
+agents_per_net = 35
 layers = lambda: [ColorLayer()]
 
 iterations_per_update = lambda: 50

@@ -136,8 +136,9 @@ class NetAgent(Addressable):
             agent.step()
 
         if self.big_iter == self.number_of_iterations:
+            print "agent time:", time.clock() - self.start_time, "s"
             self.__synchronize_end()
-            print "total time:", time.clock() - self.start_time,"s"
+            print "total time:", time.clock() - self.start_time, "s"
 
     def __move_agent(self, agent, x, y):
         self.__remove_agent_from_matrix(agent)
