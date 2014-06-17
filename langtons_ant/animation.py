@@ -8,12 +8,12 @@ inject.config = 'langtons_ant.conf'
 
 
 class AnimationParams(object):
-    @Inject("net_dimensions", "net_agents_per_line", "net_agents_per_host")
+    @Inject("net_dimensions", "net_agents_per_line", "net_agents_per_host", "number_of_hosts")
     def __init__(self):
         pass
 
     def get_parameters(self):
-        return self.net_agents_per_line, self.net_agents_per_host, self.net_dimensions.x, self.net_dimensions.y
+        return self.net_agents_per_line, self.number_of_hosts, self.net_dimensions.x, self.net_dimensions.y
 
 
 i = 1
@@ -48,7 +48,7 @@ def next_step(dt):
                 content = f.read().splitlines()
                 for line in content:
                     args = line.split(' ')
-                    agent_number = int(args[0].split('.')[0])
+                    agent_number = args[0]
                     x_pos = int(args[1])
                     y_pos = int(args[2])
                     color = int(args[3])
@@ -112,6 +112,7 @@ def draw_ants_path():
         else:
             max_step = display_iteration
         if max_step < i:
+            max_step = max_step if display_iteration == 0 else min(display_iteration, len(ants[ant]))
             for step in range(min_step, max_step):
                 set_color(ant, ants[ant][step][2])
                 x_offset = (ants[ant][step][0] / x) * 2
@@ -135,6 +136,7 @@ def draw_ants_image():
         else:
             max_step = display_iteration
         if max_step < i:
+            max_step = max_step if display_iteration == 0 else min(display_iteration, len(ants[ant]))
             position = ants[ant][max_step - 1]
             set_color(ant, position[2])
             x_offset = (position[0] / x) * 2
